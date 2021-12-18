@@ -1,0 +1,4 @@
+#!/usr/bin/zsh
+
+gcc 1.cpp -lncursesw
+./a.out

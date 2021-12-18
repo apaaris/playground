@@ -51,11 +51,8 @@ int main(int argc, char *argv[]){
   char ast = '+';
   tlc = trc = blc = brc = (int)ast;
   wborder(win,left,right,top,bottom,tlc,trc,blc,brc);
-  if(can_change_color()){
-	 init_color(COLOR_CYAN, 999,999,999);
   mvwprintw(win,1,1, "This is a box");
   mvwprintw(win,2,1,"___________________________");
-  }
   wrefresh(win);
 
 
