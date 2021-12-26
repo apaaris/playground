@@ -1,9 +1,13 @@
 #!/usr/bin/python3
 import inquirer
 import os
-import subprocess
+import paramiko
+import socket
+import getpass
 
 userList = "./src/users"
+pw = ""
+
 def write2file(filename,text):
     fFile = open(filename,'a')
     fFile.write(text)
@@ -31,15 +35,28 @@ def getUser(filename):
         newUser = inquirer.prompt(questions)
         write2file(filename,newUser['New User'])
         return newUser['New User']
+    clear()
     return user['user']
 
-def getSSHDirs(user):
-    #connect to ssh
-    #check specific folder in scratch
-    #return list 
-    #select case from list
-    # if new, mkdir
-    return 0
+
+def manual_auth(hostname, username,pw):
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.connect((hostname, 22))
+    t = paramiko.Transport(sock)
+    t.start_client()
+    if(len(pw) is 0):
+        pw = getpass.getpass("Password for %s@%s: " % (username, hostname))
+    t.auth_password(username, pw)
+    chan = t.open_session()
+    chan.get_pty()
+    chan.invoke_shell()
+    print("*** Connection successfull!\n")
+
+    #interactive.interactive_shell(chan)
+    chan.close()
+    t.close()
+
+
 
 def getAction():
     actions = ['Mesh','Solve','PostPro']
@@ -50,7 +67,9 @@ def getAction():
             ),
 ]
     action = inquirer.prompt(questions)
+    clear()
     return action['action']
+
 def setup():
     user = getUser(userList)
     #case = getCase()
@@ -69,24 +88,21 @@ def sMesh():
 def sPostPro():
     # Check if solved is there
     # StartPostPro
-    return0
-'''
-def execute(user, case, action):
-    match action:
-        case "Mesh":
-            sMesh()
-        case "Solve":
-            sSolve()
-        case "Postpro":
-            sPostPro()
     return 0
-'''
+
+def clear():
+    os.system("clear")
 
 def main():
+    clear()
+    manual_auth("euler.ethz.ch","aparis",pw)
+    print(pw)
+    manual_auth("euler.ethz.ch","aparis",pw)
+    print(pw)
     #setup()
-    user = getUser(userList)
+    #user = getUser(userList)
     #case = getSSHDirs("aparis",cases)
-    action = getAction()
+    #action = getAction()
     #execute(user,case,action)
 
 main()
