@@ -1,4 +1,5 @@
 #!/usr/bin/python3
+
 import inquirer
 import os
 import paramiko
@@ -6,7 +7,6 @@ import socket
 import getpass
 
 userList = "./src/users"
-pw = ""
 
 def write2file(filename,text):
     fFile = open(filename,'a')
@@ -19,14 +19,12 @@ def importList(filename):
         return lines
 
 def getUser(filename):
-
     users = importList(userList);
+    users.append('New')
     questions = [
     inquirer.List('user',
                 message="Select user",
-                choices=users,
-            ),
-]
+                choices=users,),]
     user = inquirer.prompt(questions)
     if(user['user'] == 'New'):
         print("new user is being created")
@@ -39,24 +37,20 @@ def getUser(filename):
     return user['user']
 
 
-def manual_auth(hostname, username,pw):
+def sshMagic(username):
+    if(username == ''):
+        username = getUser(userList)
+    hostname = "euler.ethz.ch"
+
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.connect((hostname, 22))
     t = paramiko.Transport(sock)
     t.start_client()
-    if(len(pw) is 0):
-        pw = getpass.getpass("Password for %s@%s: " % (username, hostname))
+    pw = getpass.getpass("Password for %s@%s: " % (username, hostname))
+    
     t.auth_password(username, pw)
-    chan = t.open_session()
-    chan.get_pty()
-    chan.invoke_shell()
-    print("*** Connection successfull!\n")
-
-    #interactive.interactive_shell(chan)
-    chan.close()
-    t.close()
-
-
+    sftp = paramiko.SFTPClient.from_transport(t)
+    return username, sftp
 
 def getAction():
     actions = ['Mesh','Solve','PostPro']
@@ -70,39 +64,66 @@ def getAction():
     clear()
     return action['action']
 
-def setup():
-    user = getUser(userList)
-    #case = getCase()
-    action = getAction()
+def lsDir(user,sftp):
+    dirs = []
+    dirs = sftp.listdir("/cluster/scratch/" + user + "/cfd/cases/")
+    return dirs
 
-def sSolve():
-    # Check for mesh
+def getCase(user,sftp):
+    cases = lsDir(user,sftp)
+    cases.append('New')
+    questions = [
+    inquirer.List('cases',
+                message="Select case",
+                choices=cases,),]
+    cases = inquirer.prompt(questions)
+    if(cases['cases'] == 'New'):
+        print("new case is being created")
+        questions = [
+        inquirer.Text('New Case', message="Enter case name")]
+        newCase = inquirer.prompt(questions)
+        sftp.mkdir("/cluster/scratch/" + user + "/cfd/cases/" +newCase['New Case'])
+        return newCase['New Case']
+    clear()
+    return cases['cases']
+
+def sSolve(): #TODO -> easy
+    # Check for meshed
     # Start solve
+    print('Starting Solve')
     return 0
 
-def sMesh():
+def sMesh(): #TODO -> integration with java macro
     # Bring master to case 
     # Start mesh
+    print('Starting Mesh')
     return 0
 
-def sPostPro():
+def sPostPro(): #TODO -> integration with java macro
     # Check if solved is there
     # StartPostPro
+    print('Starting PostPro')
     return 0
+
+def exct(action):
+    if action == 'Mesh':
+        sMesh()
+    elif action == 'Solve':
+        sSolve()
+    else:
+        sPostPro()
+
 
 def clear():
     os.system("clear")
 
 def main():
-    clear()
-    manual_auth("euler.ethz.ch","aparis",pw)
-    print(pw)
-    manual_auth("euler.ethz.ch","aparis",pw)
-    print(pw)
-    #setup()
-    #user = getUser(userList)
-    #case = getSSHDirs("aparis",cases)
-    #action = getAction()
-    #execute(user,case,action)
+    user  = ''
+    user, sftp = sshMagic(user) #First login
+    cases = getCase(user,sftp)
+    exct(getAction())
+
+
+    #t.close()
 
 main()
