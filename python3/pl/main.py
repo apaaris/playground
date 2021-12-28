@@ -6,6 +6,13 @@ import paramiko
 import socket
 import getpass
 
+#-------------------------
+# TODO: check if file has right extension
+#       wget from github into specific filename
+#       set absolute paths
+#-------------------------
+
+
 userList = "./src/users"
 
 def write2file(filename,text):
@@ -87,31 +94,72 @@ def getCase(user,sftp):
     clear()
     return cases['cases']
 
-def sSolve(): #TODO -> easy
+def getCondition():
+    conditions = ['Straight','LS Cornering', 'HS Cornering']
+    questions = [
+    inquirer.List('condition',
+                message="Select condition",
+                choices=conditions,
+            ),
+]
+    conditions = inquirer.prompt(questions)
+    clear()
+    return conditions['condition']
+
+
+def sSolve(cond,fil): #TODO -> easy
     # Check for meshed
     # Start solve
-    print('Starting Solve')
+    print('Starting Solvei for ' + cond  + ' on file ' + fil)
     return 0
 
-def sMesh(): #TODO -> integration with java macro
+def sMesh(cond,fil): #TODO -> integration with java macro
     # Bring master to case 
     # Start mesh
-    print('Starting Mesh')
+    print('Starting Mesh for ' + cond  + ' on file ' + fil)
     return 0
 
-def sPostPro(): #TODO -> integration with java macro
+def sPostPro(cond,fil): #TODO -> integration with java macro
     # Check if solved is there
     # StartPostPro
-    print('Starting PostPro')
+    print('Starting PostPro for '+ cond + ' on file ' + fil)
     return 0
 
-def exct(action):
+def exct(action,cond,user,case,sftp):
     if action == 'Mesh':
-        sMesh()
+        fil = selectFile(user,case,action,sftp)
+        sMesh(cond,fil)
     elif action == 'Solve':
-        sSolve()
+        fil = selectFile(user,case,action,sftp)
+        sSolve(cond,fil)
     else:
-        sPostPro()
+        fil = selectFile(user,case,action,sftp)
+        sPostPro(cond,fil)
+
+def selectFile(user,case,action,sftp):
+    
+    sftp.chdir('/cluster/scratch/' + user + '/cfd/cases/' + case + '/')
+    files = sftp.listdir()
+    if action == 'Mesh':
+        files.append('New')
+    questions = [
+    inquirer.List('mesh',
+                message="Select file",
+                choices=files,),]
+    mesh = inquirer.prompt(questions)
+    if(mesh['mesh'] == 'New'):
+        print("new file is being created")
+        questions = [
+        inquirer.Text('New Mesh', message="Enter simulation name?")]
+        newMesh = inquirer.prompt(questions)
+        ## Wget/curl here
+        print('wgetting new .sim file')
+        #write2file(filename,newUser['New User'])
+        return newMesh['New Mesh']
+    clear()
+    return mesh['mesh']
+    
+
 
 
 def clear():
@@ -120,8 +168,10 @@ def clear():
 def main():
     user  = ''
     user, sftp = sshMagic(user) #First login
-    cases = getCase(user,sftp)
-    exct(getAction())
+    case = getCase(user,sftp)
+    condition = getCondition()
+    #fil = selectFile(user,cases,'Solve', sftp)
+    exct(getAction(),condition,user,case,sftp)
 
 
     #t.close()
