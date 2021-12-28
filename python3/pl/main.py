@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
 import inquirer
-import os
+#import os
 import paramiko
 import socket
 import getpass
@@ -11,19 +11,11 @@ import getpass
 #       wget from github into specific filename
 #       set absolute paths
 #-------------------------
-
+from sysPL import *
+from sshPL import *
+from getPL import *
 
 userList = "./src/users"
-
-def write2file(filename,text):
-    fFile = open(filename,'a')
-    fFile.write(text)
-    fFile.close()
-
-def importList(filename):
-    with open(filename) as file:
-        lines = [line.strip() for line in file]
-        return lines
 
 def getUser(filename):
     users = importList(userList);
@@ -42,7 +34,6 @@ def getUser(filename):
         return newUser['New User']
     clear()
     return user['user']
-
 
 def sshMagic(username):
     if(username == ''):
@@ -160,18 +151,14 @@ def selectFile(user,case,action,sftp):
     return mesh['mesh']
     
 
-
-
-def clear():
-    os.system("clear")
-
 def main():
     user  = ''
-    user, sftp = sshMagic(user) #First login
-    case = getCase(user,sftp)
-    condition = getCondition()
-    #fil = selectFile(user,cases,'Solve', sftp)
-    exct(getAction(),condition,user,case,sftp)
+    #clear()
+    getUser('/src/users')
+    #user, sftp = sshMagic(user) #First login
+    #case = getCase(user,sftp)
+    #condition = getCondition()
+    #exct(getAction(),condition,user,case,sftp)
 
 
     #t.close()
