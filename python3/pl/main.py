@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
 import inquirer
-#import os
+import os
 import paramiko
 import socket
 import getpass
@@ -15,7 +15,7 @@ from sysPL import *
 from sshPL import *
 from getPL import *
 
-userList = "./src/users"
+userList = "%s/src/users"%(os.getcwd())
 
 def getUser(filename):
     users = importList(userList);
@@ -155,9 +155,9 @@ def main():
     user  = ''
     #clear()
     getUser('/src/users')
-    #user, sftp = sshMagic(user) #First login
-    #case = getCase(user,sftp)
-    #condition = getCondition()
+    user, sftp = sshMagic(user) #First login
+    case = getCase(user,sftp)
+    condition = getCondition()
     #exct(getAction(),condition,user,case,sftp)
 
 
